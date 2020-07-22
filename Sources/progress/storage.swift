@@ -5,6 +5,16 @@ final class Storage {
     static let filename = "progress.json"
 
     /// MARK: Public
+
+    /// Returns a non-empty array of projects, otherwise returns nil.
+    static func getProjects() -> [Project]? {
+        if let projects = Storage.retrieve(as: [Project].self), !projects.isEmpty {
+            return projects
+        } else {
+            return nil
+        }
+    }
+
     static func store<T: Encodable>(_ object: T) {
         let url = getFilePath()
         let encoder = JSONEncoder()
@@ -20,7 +30,9 @@ final class Storage {
         }
     }
 
-    static func retrieve<T: Decodable>(as type: T.Type) -> T? {
+    /// MARK: Private
+
+    private static func retrieve<T: Decodable>(as type: T.Type) -> T? {
         let url = getFilePath()
     
         if !FileManager.default.fileExists(atPath: url.path) {
@@ -40,7 +52,6 @@ final class Storage {
         }
     }
 
-    /// MARK: Private
     private static func getFilePath() -> URL {
         if let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
             return url.appendingPathComponent(Storage.filename)

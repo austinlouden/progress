@@ -7,8 +7,8 @@ import ArgumentParser
 
 struct Progress: ParsableCommand {
     static let configuration = CommandConfiguration(
-        abstract: "Shows progress",
-        subcommands: [Show.self, Add.self]
+        abstract: "Progress is a simple command line tool for tracking your various projects and progress.",
+        subcommands: [Show.self, Add.self, Delete.self]
     )
 
     init() {}
@@ -16,13 +16,15 @@ struct Progress: ParsableCommand {
 
 struct Show: ParsableCommand {
     public static let configuration = CommandConfiguration(
-        abstract: "Show all projects."
+        abstract: "Shows all projects."
     )
 
     func run() throws {
-        print("Showing all projects")
-        let x = Storage.retrieve(as: [Project].self)
-        print(x ?? "None")
+        if let projects = Storage.getProjects() {
+            printProjects(projects)
+        } else {
+            print("No projects to show. Add a new project with progress add <name>.")
+        }
     }
 }
 
@@ -47,9 +49,7 @@ struct Add: ParsableCommand {
     }
 
     func run() throws {
-        print("Creating project with name \(name), progress \(progress ?? 0.0)")
-
-        if var projects = Storage.retrieve(as: [Project].self) {
+        if var projects = Storage.getProjects() {
             let newProject = Project(id: projects.count, name: name, progress: progress ?? 0)
             projects.append(newProject)
             Storage.store(projects)
@@ -57,6 +57,45 @@ struct Add: ParsableCommand {
             let newProject = Project(id: 0, name: name, progress: progress ?? 0)
             Storage.store([newProject])
         }
+
+        print("Created project with name \(name), progress \(progress ?? 0.0)")
+    }
+}
+
+struct Delete: ParsableCommand {
+    public static let configuration = CommandConfiguration(
+        abstract: "Deletes a project with a given id."
+    )
+
+    @Argument(help: "The id of the project to delete. You can find the project id with `progress show`")
+    private var id: Int
+
+    func validate() throws {
+        if let projects = Storage.getProjects() {
+            if id > projects.endIndex {
+                throw ValidationError("A project with that id does not exist.")
+            }
+        } else {
+            throw ValidationError("You currently have no projects to delete.")
+        }
+    }
+
+    func run() throws {
+        if var projects = Storage.getProjects() {
+            projects.remove(at: id)
+            for i in 0..<projects.count {
+                projects[i].id = i
+            }
+            Storage.store(projects)
+            printProjects(projects)
+        }
+    }
+
+}
+
+func printProjects(_ projects: [Project]) {
+    for p in projects {
+        print("\(p.id)\t\(p.name)\t\t\(p.progress)%")
     }
 }
 

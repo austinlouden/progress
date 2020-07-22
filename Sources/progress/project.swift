@@ -1,5 +1,5 @@
 struct Project: Codable {
-    let id: Int
+    var id: Int
     let name: String
-    let progress: Double
+    var progress: Double
 }
