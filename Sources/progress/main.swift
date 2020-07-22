@@ -1,5 +1,6 @@
 /// Progress
 /// A simple command line tool for tracking your various projects and progress.
+/// Inspired by https://news.ycombinator.com/item?id=23900582
 
 import Foundation
 import ArgumentParser
@@ -20,9 +21,8 @@ struct Show: ParsableCommand {
 
     func run() throws {
         print("Showing all projects")
-
-        let proj1 = Project(id: 0, name: "test", progress: 99.0)
-        print(proj1)
+        let x = Storage.retrieve(as: [Project].self)
+        print(x ?? "None")
     }
 }
 
@@ -47,8 +47,16 @@ struct Add: ParsableCommand {
     }
 
     func run() throws {
-        print("Creating project with name \(name)")
-        print("Progress was given as \(progress ?? 0.0)")
+        print("Creating project with name \(name), progress \(progress ?? 0.0)")
+
+        if var projects = Storage.retrieve(as: [Project].self) {
+            let newProject = Project(id: projects.count, name: name, progress: progress ?? 0)
+            projects.append(newProject)
+            Storage.store(projects)
+        } else {
+            let newProject = Project(id: 0, name: name, progress: progress ?? 0)
+            Storage.store([newProject])
+        }
     }
 }
 
