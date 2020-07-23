@@ -5,10 +5,12 @@
 import Foundation
 import ArgumentParser
 
+/// MARK: Commands
+
 struct Progress: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Progress is a simple command line tool for tracking your various projects and progress.",
-        subcommands: [Show.self, Add.self, Delete.self]
+        subcommands: [Show.self, Add.self, Update.self, Delete.self]
     )
 
     init() {}
@@ -41,11 +43,7 @@ struct Add: ParsableCommand {
     private var progress: Double?
 
     func validate() throws {
-        if let p = progress {
-            guard p >= 0 && p <= 100 else {
-            throw ValidationError("'<progress>' must be between 0 and 100.")
-            }
-        }
+        try validateProgress(progress)
     }
 
     func run() throws {
@@ -62,6 +60,43 @@ struct Add: ParsableCommand {
     }
 }
 
+struct Update: ParsableCommand {
+    public static let configuration = CommandConfiguration(
+        abstract: "Updates a specific project with a given id."
+    )
+
+    @Argument(help: "The id of the project to update.")
+    private var id: Int
+
+    @Option(name: .shortAndLong,
+            help: "The progress on the project to update. Must be between 0 and 100.")
+    private var progress: Double?
+
+    @Option(name: .shortAndLong,
+            help: "The name of the project. Cannot be empty.")
+    private var name: String?
+
+    func validate() throws {
+        try validateProjectId(id)
+        try validateProgress(progress)
+    }
+
+    func run() throws {
+        if var projects = Storage.getProjects() {
+            if let p = progress {
+                projects[id].progress = p
+                Storage.store(projects)
+            }
+
+            if let n = name {
+                projects[id].name = n
+                Storage.store(projects)
+            }
+            printProject(projects[id])
+        }
+    }
+}
+
 struct Delete: ParsableCommand {
     public static let configuration = CommandConfiguration(
         abstract: "Deletes a project with a given id."
@@ -71,13 +106,7 @@ struct Delete: ParsableCommand {
     private var id: Int
 
     func validate() throws {
-        if let projects = Storage.getProjects() {
-            if id > projects.endIndex {
-                throw ValidationError("A project with that id does not exist.")
-            }
-        } else {
-            throw ValidationError("You currently have no projects to delete.")
-        }
+        try validateProjectId(id)
     }
 
     func run() throws {
@@ -93,10 +122,36 @@ struct Delete: ParsableCommand {
 
 }
 
+/// MARK: Validators
+
+func validateProjectId(_ id: Int) throws {
+    if let projects = Storage.getProjects() {
+        if id > projects.endIndex {
+            throw ValidationError("A project with that id does not exist.")
+        }
+    } else {
+        throw ValidationError("You currently have no projects.")
+    }
+}
+
+func validateProgress(_ progress: Double?) throws {
+    if let p = progress {
+        guard p >= 0 && p <= 100 else {
+            throw ValidationError("'<progress>' must be between 0 and 100.")
+        }
+    }
+}
+
+/// MARK: Printing
+
 func printProjects(_ projects: [Project]) {
     for p in projects {
         print("\(p.id)\t\(p.name)\t\t\(p.progress)%")
     }
+}
+
+func printProject(_ project: Project) {
+    print("\(project.id)\t\(project.name)\t\t\(project.progress)%")
 }
 
 Progress.main()
