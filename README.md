@@ -1,3 +1,3 @@
-# progress
+### About
 
-A description of this package.
+Progress is terminal-based project tracking tool.
