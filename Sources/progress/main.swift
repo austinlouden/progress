@@ -2,8 +2,10 @@
 /// A simple command line tool for tracking your various projects and progress.
 /// Inspired by https://news.ycombinator.com/item?id=23900582
 
-import Foundation
 import ArgumentParser
+import Foundation
+import TSCBasic
+import TSCUtility
 
 /// MARK: Commands
 
@@ -146,12 +148,19 @@ func validateProgress(_ progress: Double?) throws {
 
 func printProjects(_ projects: [Project]) {
     for p in projects {
-        print("\(p.id)\t\(p.name)\t\t\(p.progress)%")
+        outputString("\(p.id)\t\(p.name)\t\t\(p.progress)%")
     }
 }
 
 func printProject(_ project: Project) {
     print("\(project.id)\t\(project.name)\t\t\(project.progress)%")
+}
+
+func outputString(_ s: String) {
+    // ex: https://www.fivestars.blog/code/ultimate-guide-swift-executables.html
+    let stdoutStream = TSCBasic.stdoutStream
+    let tc = TerminalController(stream: stdoutStream)
+    tc?.write(s, inColor: .yellow, bold: true)
 }
 
 Progress.main()
