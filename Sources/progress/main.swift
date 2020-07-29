@@ -146,21 +146,20 @@ func validateProgress(_ progress: Double?) throws {
 
 /// MARK: Printing
 
-func printProjects(_ projects: [Project]) {
+func printProjects(_ projects: [Project]) {    
     for p in projects {
-        outputString("\(p.id)\t\(p.name)\t\t\(p.progress)%")
+        printProject(p)
     }
 }
 
-func printProject(_ project: Project) {
-    print("\(project.id)\t\(project.name)\t\t\(project.progress)%")
-}
-
-func outputString(_ s: String) {
-    // ex: https://www.fivestars.blog/code/ultimate-guide-swift-executables.html
+func printProject(_ p: Project) {
     let stdoutStream = TSCBasic.stdoutStream
     let tc = TerminalController(stream: stdoutStream)
-    tc?.write(s, inColor: .yellow, bold: true)
+
+    tc?.write("\(p.id). ", inColor: .grey, bold: false)
+    tc?.write("\(p.name) ", inColor: .white, bold: true)
+    tc?.write("(\(p.progress)%)", inColor: .grey, bold: true)
+    tc?.endLine()
 }
 
 Progress.main()
