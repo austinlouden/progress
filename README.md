@@ -6,10 +6,9 @@ Progress is terminal-based project tracking tool.
 
 ### Usage
 
-USAGE: progress <subcommand>
+I find it helpful to be reminded of my active projects when opening up a new terminal session, so I've added `progress show` to the bottom of my `.zshrc`.
 
-OPTIONS:
--  -h, --help              Show help information.
+USAGE: progress <subcommand>
 
 SUBCOMMANDS:
 -  `show`                    Shows all projects.
