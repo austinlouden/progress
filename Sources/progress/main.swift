@@ -49,16 +49,17 @@ struct Add: ParsableCommand {
     }
 
     func run() throws {
+        let progressPercent = progress ?? 0.0
         if var projects = Storage.getProjects() {
-            let newProject = Project(id: projects.count, name: name, progress: progress ?? 0)
+            let newProject = Project(id: projects.count, name: name, progress: progressPercent, modificationDate: Date())
             projects.append(newProject)
             Storage.store(projects)
         } else {
-            let newProject = Project(id: 0, name: name, progress: progress ?? 0)
+            let newProject = Project(id: 0, name: name, progress: progressPercent, modificationDate: Date())
             Storage.store([newProject])
         }
 
-        print("Created project with name \(name), progress \(progress ?? 0.0)")
+        print("Created project with name \(name), progress \(progressPercent)")
     }
 }
 
@@ -87,6 +88,7 @@ struct Update: ParsableCommand {
         if var projects = Storage.getProjects() {
             if let p = progress {
                 projects[id].progress = p
+                projects[id].modificationDate = Date()
                 Storage.store(projects)
             }
 
@@ -156,9 +158,15 @@ func printProject(_ p: Project) {
     let stdoutStream = TSCBasic.stdoutStream
     let tc = TerminalController(stream: stdoutStream)
 
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateStyle = .medium
+    dateFormatter.timeStyle = .short
+    let dateString = dateFormatter.string(from: p.modificationDate)
+
     tc?.write("\(p.id). ", inColor: .grey, bold: false)
     tc?.write("\(p.name) ", inColor: .white, bold: true)
-    tc?.write("(\(p.progress)%)", inColor: .grey, bold: true)
+    tc?.write("(\(p.progress)%) ", inColor: .grey, bold: true)
+    tc?.write("| \(dateString)", inColor: .grey, bold: false)
     tc?.endLine()
 }
 
